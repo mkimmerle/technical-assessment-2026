@@ -26,11 +26,18 @@
 	<body>
 		<main>
 			<div class="w-full md:max-w-[1920px] md:mx-auto pt-9 pb-9 px-6 md:pt-20 md:pb-25 md:px-32 flex flex-col gap-3 md:gap-9">
+
 				<!--Section header -->
 				<div class="flex items-center justify-center md:justify-between mb-6">
 					<h2 class="font-bold md:font-black text-[28px] md:text-[40px] leading-[1.25] md:leading-[1.2] tracking-[-1px] text-center md:text-left text-[#231F20] font-source-serif">Best Sellers</h2>
 					<a href="#" class="hidden md:flex items-center gap-1 font-semibold text-[14px] leading-[1.4] tracking-[0.03em] text-center text-[#5C553A] font-poppins border-b border-transparent hover:border-current motion-safe:transition-colors motion-safe:duration-300">Shop All Best Sellers &#8594;</a>
 				</div>
+
+				<!-- "Show More" button for mobile grid -->
+				<div class="md:hidden">
+					<button id="showMoreBtn" class="w-full rounded-[100px] py-4 px-6 bg-[#1C1D1D] font-poppins font-semibold text-[16px] leading-[1.4] tracking-[0.03em] text-center text-[#FFFFFA] hover:opacity-90 motion-safe:transition-opacity motion-safe:duration-300">Show More</button>
+				</div>
+				
 			</div>
 		</main>
 	</body>
