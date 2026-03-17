@@ -11,6 +11,8 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600&family=Source+Serif+4:wght@900&display=swap" rel="stylesheet">
 
+		<!-- In a real-world project, custom fonts would be defined in tailwind.config.js. Just keeping it simple here -->
+
 		<style>
 			.font-source-serif {font-family: 'Source Serif 4', serif;}
 			.font-bebas-neue {font-family: 'Bebas Neue', sans-serif;}
@@ -22,5 +24,14 @@
 		<title>Best Sellers - Technical Assessment</title>
 	</head>
 	<body>
+		<main>
+			<div class="w-full md:max-w-[1920px] md:mx-auto pt-9 pb-9 px-6 md:pt-20 md:pb-25 md:px-32 flex flex-col gap-3 md:gap-9">
+				<!--Section header -->
+				<div class="flex items-center justify-center md:justify-between mb-6">
+					<h2 class="font-bold md:font-black text-[28px] md:text-[40px] leading-[1.25] md:leading-[1.2] tracking-[-1px] text-center md:text-left text-[#231F20] font-source-serif">Best Sellers</h2>
+					<a href="#" class="hidden md:flex items-center gap-1 font-semibold text-[14px] leading-[1.4] tracking-[0.03em] text-center text-[#5C553A] font-poppins border-b border-transparent hover:border-current motion-safe:transition-colors motion-safe:duration-300">Shop All Best Sellers &#8594;</a>
+				</div>
+			</div>
+		</main>
 	</body>
 </html>
