@@ -11,6 +11,8 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600&family=Source+Serif+4:wght@900&display=swap" rel="stylesheet">
 
+		<!-- NOTE: Using Source Serif 4 instead of Source Serif Pro; the Source Serif Pro font used in the Figma design was not available from Google Fonts, so this is a substitution. IRL, I'd likely get the file from another source and self-host the font. -->
+
 		<!-- In a real-world project, custom fonts would be defined in tailwind.config.js. Just keeping it simple here -->
 
 		<style>
@@ -33,8 +35,22 @@
 					<a href="#" class="hidden md:flex items-center gap-1 font-semibold text-[14px] leading-[1.4] tracking-[0.03em] text-center text-[#5C553A] font-poppins border-b border-transparent hover:border-current motion-safe:transition-colors motion-safe:duration-300">Shop All Best Sellers &#8594;</a>
 				</div>
 
-				<!-- "Show More" button for mobile grid -->
+				<!-- Horizontal-scroll desktop carousel -->
+				<div class="hidden md:block">
+					<div id="desktop-carousel" class="flex gap-5 overflow-x-auto pb-4 cursor-grab active:cursor-grabbing">
+					  <!-- Product cards inserted dynamically here -->
+					</div>
+
+					<!-- custom scrollbar -->
+
+					<div class="mt-1 h-[3px] bg-gray-200 rounded-full relative overflow-hidden">
+					  <div id="thumb" class="absolute h-full bg-gray-900 rounded-full" style="width:28%; left:0;"></div>
+					</div>
+				</div>
+
+				<!-- Mobile Grid -->
 				<div class="md:hidden">
+    				<div id="mobile-grid" class="grid grid-cols-2 gap-3"></div>
 					<button id="showMoreBtn" class="w-full rounded-[100px] py-4 px-6 bg-[#1C1D1D] font-poppins font-semibold text-[16px] leading-[1.4] tracking-[0.03em] text-center text-[#FFFFFA] hover:opacity-90 motion-safe:transition-opacity motion-safe:duration-300">Show More</button>
 				</div>
 
