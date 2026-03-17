@@ -70,6 +70,49 @@
 				{ name:"Wool Beanie Storm Grey",                 	price:"$49.95",  bestseller:true,  save:null, rating:4.5, reviews:1102, img:"https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=400&q=80", img2:"https://images.unsplash.com/photo-1510598969022-c4c6c5d05769?w=400&q=80" },
 				{ name:"Leather Bifold Wallet Tan",              	price:"$79.95",  bestseller:true,  save:5,    rating:4,   reviews:987,  img:"https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&q=80", img2:"https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80" }
 			];
+
+			function starsHTML(rating) {
+				return Array.from({ length: 5 }, (_, i) => {
+					const filled = rating >= i + 1 || rating >= i + 0.5;
+					return `<svg width="12" height="12" class="md:w-3 md:h-3 w-[9px] h-[9px]" viewBox="0 0 12 12" aria-hidden="true" fill="${filled ? '#231F20' : '#CFCFCF'}" xmlns="http://www.w3.org/2000/svg">
+					<path d="M6 0L7.63 4.17L12 4.51L8.82 7.24L9.88 11.49L6 9.1L2.12 11.49L3.18 7.24L0 4.51L4.37 4.17L6 0Z"/>
+					</svg>`;
+				}).join('');
+			}
+
+			function buildCard(p) {
+				const card = document.createElement('div');
+				card.className = 'group flex flex-col w-full md:w-[355px] flex-shrink-0';
+				card.innerHTML = `
+					<div class="relative rounded-[10px] overflow-hidden aspect-square">
+						<img src="${p.img}" alt="${p.name}" class="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:opacity-0 motion-safe:transition-opacity motion-safe:duration-300">
+						<img src="${p.img2}" alt="${p.name}" class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300">
+						<div class="absolute top-2 left-2 right-2 flex justify-between items-start pointer-events-none">
+							${p.bestseller ? `<span class="bg-white border border-black rounded-[100px] py-1 px-2 font-bebas-neue font-normal text-[10px] leading-none tracking-[0.06em] text-center text-black">Best Seller</span>` : '<span></span>'}
+							${p.save ? `<span class="bg-[#5C7962] border border-black rounded-[100px] py-1 px-2 font-bebas-neue font-normal text-[10px] leading-none tracking-[0.06em] text-center text-[#FFFFFA]">Save ${p.save}%</span>` : '<span></span>'}
+						</div>
+					</div>
+					<div class="flex flex-col gap-y-2 mt-5 mb-5">
+						<p class="font-bebas-neue font-normal text-[16px] md:text-[18px] leading-none tracking-[0.03em] uppercase text-[#1C1D1D]">${p.name}</p>
+						<div class="flex items-center gap-x-1 py-1">
+							<div class="flex items-center gap-x-0.5" aria-label="${p.rating} stars">${starsHTML(p.rating)}</div>
+							<span class="font-poppins font-normal text-[11px] md:text-[12px] leading-none text-[#707070]">${p.reviews.toLocaleString()} Reviews</span>
+						</div>
+						<p class="font-poppins font-medium text-[16px] leading-none uppercase text-[#1C1D1D]">${p.price}</p>
+					</div>
+				`;
+				return card;
+			}
+
+			const desktopSlider = document.getElementById('desktop-carousel');
+			const mobileGrid = document.getElementById('mobile-grid');
+
+			products.forEach((p, i) => {
+				desktopSlider.appendChild(buildCard(p));
+				const mCard = buildCard(p);
+				if (i >= 4) mCard.classList.add('hidden');
+				mobileGrid.appendChild(mCard);
+			});
 		</script>
 	</body>
 </html>
