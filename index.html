@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 	<head>
@@ -11,14 +12,32 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600&family=Source+Serif+4:wght@900&display=swap" rel="stylesheet">
 
-		<!-- NOTE: Using Source Serif 4 instead of Source Serif Pro; the Source Serif Pro font used in the Figma design was not available from Google Fonts, so this is a substitution. IRL, I'd likely get the file from another source and self-host the font. -->
-
-		<!-- In a real-world project, custom fonts would be defined in tailwind.config.js. Just keeping it simple here -->
+		<!-- NOTES:
+				Using Source Serif 4 instead of Source Serif Pro; the Source Serif Pro font used in the Figma design was not available from Google Fonts, so this is a substitution. IRL, I'd likely get the file from another source and self-host the font.
+			 	In a real-world project, custom fonts would be defined in tailwind.config.js. Just keeping it simple here.
+			 	Also implemented some custom CSS to handle the browser's normal scrollbar.
+		-->
 
 		<style>
 			.font-source-serif {font-family: 'Source Serif 4', serif;}
 			.font-bebas-neue {font-family: 'Bebas Neue', sans-serif;}
 			.font-poppins {font-family: 'Poppins', sans-serif;}
+
+			#desktop-carousel::-webkit-scrollbar {display: none;}
+			#desktop-carousel {scrollbar-width: none;}
+
+			#thumb {
+				height: 3px;
+				position: absolute;
+				top: 50%;
+				transform: translateY(-50%);
+				cursor: grab;
+			}
+			#thumb:active { cursor: grabbing; }
+
+			@media (prefers-reduced-motion: no-preference) {
+				#thumb { transition: height 0.2s ease; }
+			}
 		</style>
 
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -41,17 +60,16 @@
 					  <!-- Product cards inserted dynamically here -->
 					</div>
 
-					<!-- custom scrollbar -->
-
-					<div class="mt-1 h-[3px] bg-gray-200 rounded-full relative overflow-hidden">
-					  <div id="thumb" class="absolute h-full bg-gray-900 rounded-full" style="width:28%; left:0;"></div>
+					<!-- Custom scrollbar -->
+					<div id="scrollbar-track" class="mt-1 h-[3px] bg-gray-200 rounded-full relative overflow-visible">
+					  <div id="thumb" class="absolute bg-gray-900 rounded-full" style="width:28%; left:0;"></div>
 					</div>
 				</div>
 
 				<!-- Mobile Grid -->
 				<div class="md:hidden">
     				<div id="mobile-grid" class="grid grid-cols-2 gap-3"></div>
-					<button id="showMoreBtn" class="w-full rounded-[100px] py-4 px-6 bg-[#1C1D1D] font-poppins font-semibold text-[16px] leading-[1.4] tracking-[0.03em] text-center text-[#FFFFFA] hover:opacity-90 motion-safe:transition-opacity motion-safe:duration-300">Show More</button>
+					<button id="showMoreBtn" class="mt-5 w-full rounded-[100px] py-4 px-6 bg-[#1C1D1D] font-poppins font-semibold text-[16px] leading-[1.4] tracking-[0.03em] text-center text-[#FFFFFA] hover:opacity-90 motion-safe:transition-opacity motion-safe:duration-300">Show More</button>
 				</div>
 
 			</div>
@@ -114,6 +132,84 @@
 				const mCard = buildCard(p);
 				if (i >= 4) mCard.classList.add('hidden');
 				mobileGrid.appendChild(mCard);
+			});
+
+			// Scrollbar 
+
+			const scrollbarTrack = document.getElementById('scrollbar-track');
+			const thumb = document.getElementById('thumb');
+
+			// Recalculate thumb width and position based on scroll state
+			function updateThumb() {
+				const ratio = desktopSlider.clientWidth / desktopSlider.scrollWidth;
+				const thumbWidth = Math.max(ratio * scrollbarTrack.clientWidth, 40); // 40px minimum
+				const maxScrollLeft = desktopSlider.scrollWidth - desktopSlider.clientWidth;
+				const maxThumbLeft = scrollbarTrack.clientWidth - thumbWidth;
+				const pct = maxScrollLeft > 0 ? desktopSlider.scrollLeft / maxScrollLeft : 0;
+				thumb.style.width = thumbWidth + 'px';
+				thumb.style.left = (pct * maxThumbLeft).toFixed(1) + 'px';
+			}
+
+			// Update thumb on scroll
+			desktopSlider.addEventListener('scroll', updateThumb);
+
+			// Update thumb on resize (e.g. window resize changes container width)
+			window.addEventListener('resize', updateThumb);
+
+			// Run once on load to set initial thumb size/position
+			window.addEventListener('load', updateThumb);
+
+			// Thumb hover height
+			let isThumbDragging = false;
+
+			thumb.addEventListener('mouseenter', () => thumb.style.height = '6px');
+			thumb.addEventListener('mouseleave', () => { if (!isThumbDragging) thumb.style.height = ''; });
+
+			// Thumb drag — moves the scrollbar thumb and syncs to carousel scroll position
+			let thumbStartX, thumbStartLeft;
+
+			thumb.addEventListener('mousedown', e => {
+				isThumbDragging = true;
+				thumbStartX = e.pageX;
+				thumbStartLeft = thumb.offsetLeft;
+				thumb.style.height = '6px';
+				e.stopPropagation(); // prevent triggering carousel drag simultaneously
+				e.preventDefault();
+			});
+
+			document.addEventListener('mousemove', e => {
+				if (!isThumbDragging) return;
+				const dx = e.pageX - thumbStartX;
+				const maxThumbLeft = scrollbarTrack.clientWidth - thumb.offsetWidth;
+				const newLeft = Math.min(Math.max(thumbStartLeft + dx, 0), maxThumbLeft);
+				const pct = maxThumbLeft > 0 ? newLeft / maxThumbLeft : 0;
+				// Update carousel scroll position to match thumb
+				desktopSlider.scrollLeft = pct * (desktopSlider.scrollWidth - desktopSlider.clientWidth);
+			});
+
+			document.addEventListener('mouseup', () => {
+				if (isThumbDragging) {
+					isThumbDragging = false;
+					thumb.style.height = '';
+				}
+			});
+
+			// Carousel click and drag
+
+			let isSliderDragging = false, startX, sl;
+
+			desktopSlider.addEventListener('mousedown', e => {
+				isSliderDragging = true;
+				startX = e.pageX - desktopSlider.offsetLeft;
+				sl = desktopSlider.scrollLeft;
+			});
+
+			document.addEventListener('mouseup', () => isSliderDragging = false);
+
+			desktopSlider.addEventListener('mousemove', e => {
+				if (!isSliderDragging) return;
+				e.preventDefault();
+				desktopSlider.scrollLeft = sl - (e.pageX - desktopSlider.offsetLeft - startX) * 1.2;
 			});
 
 			// Expand mobile grid and remove "Show More" button when button is clicked
