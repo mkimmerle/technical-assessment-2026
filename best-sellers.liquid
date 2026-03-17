@@ -1,22 +1,18 @@
 {% comment %}
-  Section:    Best Sellers
-  File:       sections/best-sellers.liquid
+  Renders a horizontally-scrollable product carousel on desktop and a 2-column expandable grid on mobile, driven by a merchant-selected collection.
 
-  Renders a horizontally-scrollable product carousel on desktop and a
-  2-column expandable grid on mobile, driven by a merchant-selected collection.
-
-  Settings (configured in the Shopify theme editor via {% schema %}):
-    - title             Section heading
-    - collection        The collection to pull products from
-    - max_products      Maximum number of products to display (1–10)
-    - show_all_link     Toggle the "Shop All Best Sellers" link on desktop
-    - show_ratings      Toggle star rating display (requires third-party reviews app)
+  Settings that cab be configured in the Shopify theme editor:
+    title: Section heading
+    collection: The collection to pull products from
+    max_products: Maximum number of products to display (1–10)
+    show_all_link: Toggle the "Shop All Best Sellers" link on desktop
+    show_ratings: Toggle star rating display (currently uses a placeholder snippet; would require a third-party reviews app)
 {% endcomment %}
 
 {%- liquid
   assign collection  = section.settings.collection
   assign max_products = section.settings.max_products | default: 10
-  assign products    = collection.products | slice: 0, max_products
+  assign products = collection.products | slice: 0, max_products
 -%}
 
 {% comment %}
@@ -57,8 +53,17 @@
 
   #best-sellers-thumb-{{ section.id }}:active {cursor: grabbing;}
 
+  .card a:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
-    #best-sellers-thumb { transition: height 0.3s ease; }
+    #best-sellers-thumb {transition: height 0.3s ease}
   }
 </style>
 
@@ -80,23 +85,23 @@
     <div id="best-sellers-carousel-{{ section.id }}" class="flex gap-5 overflow-x-auto pb-4 cursor-grab active:cursor-grabbing">
       {% for product in collection.products limit: max_products %}
         {%- liquid
-          assign primary_image   = product.featured_image
+          assign primary_image = product.featured_image
           assign secondary_image = product.images[1] | default: product.featured_image
-          assign is_best_seller  = false
+          assign is_best_seller = false
           if product.tags contains 'best-seller'
             assign is_best_seller = true
           endif
-          assign has_discount    = false
-          assign save_pct        = 0
+          assign has_discount = false
+          assign save_pct = 0
           if product.compare_at_price > product.price
             assign has_discount = true
-            assign save_pct     = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
+            assign save_pct = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
           endif
         -%}
 
         {% comment %} If section is definitely going to be "below the fold," add loading="lazy" attribute to images {% endcomment %}
 
-        <div class="group flex flex-col w-[355px] flex-shrink-0">
+        <div class="card relative group flex flex-col w-[355px] flex-shrink-0">
 
           <div class="relative rounded-[10px] overflow-hidden aspect-square">
             <img src="{{ primary_image | image_url: width: 400 }}" alt="{{ primary_image.alt | escape | default: product.title }}" class="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:opacity-0 motion-safe:transition-opacity motion-safe:duration-300">
@@ -154,17 +159,17 @@
 
       {% for product in collection.products limit: max_products %}
         {%- liquid
-          assign primary_image   = product.featured_image
+          assign primary_image = product.featured_image
           assign secondary_image = product.images[1] | default: product.featured_image
-          assign is_best_seller  = false
+          assign is_best_seller = false
           if product.tags contains 'best-seller'
             assign is_best_seller = true
           endif
-          assign has_discount    = false
-          assign save_pct        = 0
+          assign has_discount = false
+          assign save_pct = 0
           if product.compare_at_price > product.price
             assign has_discount = true
-            assign save_pct     = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
+            assign save_pct = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
           endif
         -%}
 
@@ -241,13 +246,13 @@
 
   function updateThumb() {
     if (!carousel || !track || !thumb) return;
-    const ratio      = carousel.clientWidth / carousel.scrollWidth;
+    const ratio = carousel.clientWidth / carousel.scrollWidth;
     const thumbWidth = Math.max(ratio * track.clientWidth, 40);
     const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
-    const maxThumbLeft  = track.clientWidth - thumbWidth;
+    const maxThumbLeft = track.clientWidth - thumbWidth;
     const pct = maxScrollLeft > 0 ? carousel.scrollLeft / maxScrollLeft : 0;
     thumb.style.width = thumbWidth + 'px';
-    thumb.style.left  = (pct * maxThumbLeft).toFixed(1) + 'px';
+    thumb.style.left = (pct * maxThumbLeft).toFixed(1) + 'px';
   }
 
   carousel.addEventListener('scroll', updateThumb);
@@ -267,8 +272,8 @@
 
   thumb.addEventListener('mousedown', e => {
     isThumbDragging = true;
-    thumbStartX     = e.pageX;
-    thumbStartLeft  = thumb.offsetLeft;
+    thumbStartX = e.pageX;
+    thumbStartLeft = thumb.offsetLeft;
     thumb.style.height = '6px';
     e.stopPropagation();
     e.preventDefault();
@@ -276,16 +281,16 @@
 
   document.addEventListener('mousemove', e => {
     if (!isThumbDragging) return;
-    const dx           = e.pageX - thumbStartX;
+    const dx = e.pageX - thumbStartX;
     const maxThumbLeft = track.clientWidth - thumb.offsetWidth;
-    const newLeft      = Math.min(Math.max(thumbStartLeft + dx, 0), maxThumbLeft);
-    const pct          = maxThumbLeft > 0 ? newLeft / maxThumbLeft : 0;
+    const newLeft = Math.min(Math.max(thumbStartLeft + dx, 0), maxThumbLeft);
+    const pct = maxThumbLeft > 0 ? newLeft / maxThumbLeft : 0;
     carousel.scrollLeft = pct * (carousel.scrollWidth - carousel.clientWidth);
   });
 
   document.addEventListener('mouseup', () => {
     if (isThumbDragging) {
-      isThumbDragging    = false;
+      isThumbDragging = false;
       thumb.style.height = '';
     }
   });
@@ -297,7 +302,7 @@
   carousel.addEventListener('mousedown', e => {
     isSliderDragging = true;
     startX = e.pageX - carousel.offsetLeft;
-    sl     = carousel.scrollLeft;
+    sl = carousel.scrollLeft;
   });
 
   carousel.addEventListener('mousemove', e => {

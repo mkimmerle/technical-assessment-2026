@@ -19,24 +19,33 @@
 		-->
 
 		<style>
-			.font-source-serif {font-family: 'Source Serif 4', serif;}
-			.font-bebas-neue {font-family: 'Bebas Neue', sans-serif;}
-			.font-poppins {font-family: 'Poppins', sans-serif;}
+			.font-source-serif {font-family: 'Source Serif 4', serif}
+			.font-bebas-neue {font-family: 'Bebas Neue', sans-serif}
+			.font-poppins {font-family: 'Poppins', sans-serif}
 
-			#desktop-carousel::-webkit-scrollbar {display: none;}
-			#desktop-carousel {scrollbar-width: none;}
+			#desktop-carousel::-webkit-scrollbar {display: none}
+			#desktop-carousel {scrollbar-width: none}
 
 			#thumb {
 				height: 3px;
 				position: absolute;
 				top: 50%;
 				transform: translateY(-50%);
-				cursor: grab;
+				cursor: grab
 			}
-			#thumb:active { cursor: grabbing; }
+			#thumb:active {cursor: grabbing}
+
+			.card a:after {
+				content: '';
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0
+			}
 
 			@media (prefers-reduced-motion: no-preference) {
-				#thumb { transition: height 0.2s ease; }
+				#thumb {transition: height 0.2s ease}
 			}
 		</style>
 
@@ -102,7 +111,7 @@
 			// Create product cards
 			function buildCard(p) {
 				const card = document.createElement('div');
-				card.className = 'group flex flex-col w-full md:w-[355px] flex-shrink-0';
+				card.className = 'card relative group flex flex-col w-full md:w-[355px] flex-shrink-0';
 				card.innerHTML = `
 					<div class="relative rounded-[10px] overflow-hidden aspect-square">
 						<img src="${p.img}" alt="${p.name}" class="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:opacity-0 motion-safe:transition-opacity motion-safe:duration-300">
@@ -113,7 +122,7 @@
 						</div>
 					</div>
 					<div class="flex flex-col gap-y-2 mt-5 mb-5">
-						<p class="font-bebas-neue font-normal text-[16px] md:text-[18px] leading-none tracking-[0.03em] uppercase text-[#1C1D1D]">${p.name}</p>
+						<p class="font-bebas-neue font-normal text-[16px] md:text-[18px] leading-none tracking-[0.03em] uppercase text-[#1C1D1D]"><a href="#">${p.name}</a></p>
 						<div class="flex items-center gap-x-1 py-1">
 							<div class="flex items-center gap-x-0.5" aria-label="${p.rating} stars">${starsHTML(p.rating)}</div>
 							<span class="font-poppins font-normal text-[11px] md:text-[12px] leading-none text-[#707070]">${p.reviews.toLocaleString()} Reviews</span>
