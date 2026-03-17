@@ -1,0 +1,369 @@
+{% comment %}
+  Section:    Best Sellers
+  File:       sections/best-sellers.liquid
+
+  Renders a horizontally-scrollable product carousel on desktop and a
+  2-column expandable grid on mobile, driven by a merchant-selected collection.
+
+  Settings (configured in the Shopify theme editor via {% schema %}):
+    - title             Section heading
+    - collection        The collection to pull products from
+    - max_products      Maximum number of products to display (1–10)
+    - show_all_link     Toggle the "Shop All Best Sellers" link on desktop
+    - show_ratings      Toggle star rating display (requires third-party reviews app)
+{% endcomment %}
+
+{%- liquid
+  assign collection  = section.settings.collection
+  assign max_products = section.settings.max_products | default: 10
+  assign products    = collection.products | slice: 0, max_products
+-%}
+
+{% comment %}
+  NOTES: 
+
+  In a production theme, the CSS rules below would live in the theme's main stylesheet. 
+  They are inlined here to keep the section self-contained for assessment purposes.
+
+  Custom fonts could also be registered in tailwind.config.js:
+    fontFamily: {
+      'source-serif': ['"Source Serif 4"', 'serif'],
+      'bebas-neue':   ['"Bebas Neue"', 'sans-serif'],
+      'poppins':      ['Poppins', 'sans-serif'],
+    }
+
+  Card content displays images only. Additional modifications may be needed if other content (product.featured_media) is to be displayed in cards.
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600&family=Source+Serif+4:wght@900&display=swap" rel="stylesheet">
+
+<style>
+  .font-source-serif {font-family: 'Source Serif 4', serif}
+  .font-bebas-neue {font-family: 'Bebas Neue', sans-serif}
+  .font-poppins {font-family: 'Poppins', sans-serif}
+
+  #best-sellers-carousel-{{ section.id }}::-webkit-scrollbar {display: none}
+  #best-sellers-carousel-{{ section.id }} {scrollbar-width: none}
+
+  #best-sellers-thumb-{{ section.id }} {
+    height: 3px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: grab
+  }
+
+  #best-sellers-thumb-{{ section.id }}:active {cursor: grabbing;}
+
+  @media (prefers-reduced-motion: no-preference) {
+    #best-sellers-thumb { transition: height 0.3s ease; }
+  }
+</style>
+
+<section id="best-sellers-section-{{ section.id }}" class="w-full md:max-w-[1920px] md:mx-auto pt-9 pb-9 px-6 md:pt-20 md:pb-25 md:px-32 flex flex-col gap-3 md:gap-9" data-section-id="{{ section.id }}" data-section-type="best-sellers">
+
+  <div class="flex items-center justify-center md:justify-between">
+    <h2 class="w-full font-bold md:font-black text-[28px] md:text-[40px] leading-[1.25] md:leading-[1.2] tracking-[-1px] text-center md:text-left text-[#231F20] font-source-serif">
+      {{ section.settings.title | escape }}
+    </h2>
+
+    {% if section.settings.show_all_link and collection != blank %}
+      <a href="{{ collection.url }}" class="hidden md:flex items-center gap-1 font-semibold text-[14px] leading-[1.4] tracking-[0.03em] text-[#5C553A] font-poppins border-b border-transparent hover:border-current motion-safe:transition-colors motion-safe:duration-300 whitespace-nowrap">
+        {{ 'sections.best_sellers.shop_all' | t: collection_title: collection.title }} &#8594;
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="hidden md:block">
+    <div id="best-sellers-carousel-{{ section.id }}" class="flex gap-5 overflow-x-auto pb-4 cursor-grab active:cursor-grabbing">
+      {% for product in collection.products limit: max_products %}
+        {%- liquid
+          assign primary_image   = product.featured_image
+          assign secondary_image = product.images[1] | default: product.featured_image
+          assign is_best_seller  = false
+          if product.tags contains 'best-seller'
+            assign is_best_seller = true
+          endif
+          assign has_discount    = false
+          assign save_pct        = 0
+          if product.compare_at_price > product.price
+            assign has_discount = true
+            assign save_pct     = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
+          endif
+        -%}
+
+        {% comment %} If section is definitely going to be "below the fold," add loading="lazy" attribute to images {% endcomment %}
+
+        <div class="group flex flex-col w-[355px] flex-shrink-0">
+
+          <div class="relative rounded-[10px] overflow-hidden aspect-square">
+            <img src="{{ primary_image | image_url: width: 400 }}" alt="{{ primary_image.alt | escape | default: product.title }}" class="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:opacity-0 motion-safe:transition-opacity motion-safe:duration-300">
+            <img src="{{ secondary_image | image_url: width: 400 }}" alt="{{ secondary_image.alt | escape | default: product.title }}" class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300">
+
+            {% comment %} Badges {% endcomment %}
+            <div class="absolute top-2 left-2 right-2 flex justify-between items-start pointer-events-none">
+
+              {% if is_best_seller %}
+                <span class="bg-white border border-black rounded-[100px] py-1 px-2 font-bebas-neue font-normal text-[10px] leading-none tracking-[0.06em] text-center text-black">
+                  {{ 'sections.best_sellers.badge_best_seller' | t }}
+                </span>
+              {% else %}
+                <span></span>
+              {% endif %}
+
+              {% if has_discount %}
+                <span class="bg-[#5C7962] border border-black rounded-[100px] py-1 px-2 font-bebas-neue font-normal text-[10px] leading-none tracking-[0.06em] text-center text-[#FFFFFA]">
+                  {{ 'sections.best_sellers.badge_save' | t: pct: save_pct }}
+                </span>
+              {% else %}
+                <span></span>
+              {% endif %}
+
+            </div>
+          </div>
+
+          {% comment %} Card details {% endcomment %}
+          <div class="flex flex-col gap-y-2 mt-5 mb-5">
+            <a href="{{ product.url }}" class="font-bebas-neue font-normal text-[18px] leading-none tracking-[0.03em] uppercase text-[#1C1D1D] hover:underline">{{ product.title | escape }}</a>
+
+            {% if section.settings.show_ratings %}
+              {%- render 'product-reviews-stars', product: product -%}
+            {% endif %}
+
+            <p class="font-poppins font-medium text-[16px] leading-none uppercase text-[#1C1D1D]">{{ product.price | money }}</p>
+          </div>
+        </div>
+      {% else %}
+        {% comment %} Fallback if collection is empty or not selected {% endcomment %}
+        <p class="font-poppins text-[14px] text-[#707070]">
+          {{ 'sections.best_sellers.no_products' | t }}
+        </p>
+      {% endfor %}
+    </div>
+=
+    <div id="best-sellers-track-{{ section.id }}" class="mt-1 h-[3px] bg-gray-200 rounded-full relative overflow-visible">
+      <div id="best-sellers-thumb-{{ section.id }}" class="absolute bg-gray-900 rounded-full" style="width: 28%; left: 0;"></div>
+    </div>
+  </div>
+
+  {% comment %} Mobile grid {% endcomment %}
+  <div class="md:hidden">
+    <div id="best-sellers-mobile-grid-{{ section.id }}" class="grid grid-cols-2 gap-3">
+
+      {% for product in collection.products limit: max_products %}
+        {%- liquid
+          assign primary_image   = product.featured_image
+          assign secondary_image = product.images[1] | default: product.featured_image
+          assign is_best_seller  = false
+          if product.tags contains 'best-seller'
+            assign is_best_seller = true
+          endif
+          assign has_discount    = false
+          assign save_pct        = 0
+          if product.compare_at_price > product.price
+            assign has_discount = true
+            assign save_pct     = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
+          endif
+        -%}
+
+        {% comment %} If section is definitely going to be "below the fold," add loading="lazy" attribute to images {% endcomment %}
+
+        <div class="group flex flex-col w-full{% if forloop.index > 4 %} hidden{% endif %}">
+
+          <div class="relative rounded-[10px] overflow-hidden aspect-square">
+
+            <img src="{{ primary_image | image_url: width: 400 }}" alt="{{ primary_image.alt | escape | default: product.title }}" class="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:opacity-0 motion-safe:transition-opacity motion-safe:duration-300">
+
+            <img src="{{ secondary_image | image_url: width: 400 }}" alt="{{ secondary_image.alt | escape | default: product.title }}" class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300">
+
+            <div class="absolute top-2 left-2 right-2 flex justify-between items-start pointer-events-none">
+              {% if is_best_seller %}
+                <span class="bg-white border border-black rounded-[100px] py-1 px-2 font-bebas-neue font-normal text-[10px] leading-none tracking-[0.06em] text-center text-black">
+                  {{ 'sections.best_sellers.badge_best_seller' | t }}
+                </span>
+              {% else %}
+                <span></span>
+              {% endif %}
+
+              {% if has_discount %}
+                <span class="bg-[#5C7962] border border-black rounded-[100px] py-1 px-2 font-bebas-neue font-normal text-[10px] leading-none tracking-[0.06em] text-center text-[#FFFFFA]">
+                  {{ 'sections.best_sellers.badge_save' | t: pct: save_pct }}
+                </span>
+              {% else %}
+                <span></span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-y-2 mt-3 mb-3">
+            <a href="{{ product.url }}" class="font-bebas-neue font-normal text-[16px] leading-none tracking-[0.03em] uppercase text-[#1C1D1D] hover:underline">
+              {{ product.title | escape }}
+            </a>
+
+            {% if section.settings.show_ratings %}
+              {%- render 'product-reviews-stars', product: product -%}
+            {% endif %}
+
+            <p class="font-poppins font-medium text-[16px] leading-none uppercase text-[#1C1D1D]">
+              {{ product.price | money }}
+            </p>
+          </div>
+
+        </div>
+      {% else %}
+        <p class="font-poppins text-[14px] text-[#707070] col-span-2">
+          {{ 'sections.best_sellers.no_products' | t }}
+        </p>
+      {% endfor %}
+
+    </div>
+
+    {% comment %} Only render Show More button if there are more than 4 products {% endcomment %}
+    {% if collection.products_count > 4 %}
+      <button id="best-sellers-show-more-{{ section.id }}" class="mt-5 w-full rounded-[100px] py-4 px-6 bg-[#1C1D1D] font-poppins font-semibold text-[16px] leading-[1.4] tracking-[0.03em] text-center text-[#FFFFFA] hover:opacity-90 motion-safe:transition-opacity motion-safe:duration-300">
+        {{ 'sections.best_sellers.show_more' | t }}
+      </button>
+    {% endif %}
+  </div>
+
+</section>
+
+<script>
+  const carousel = document.getElementById('best-sellers-carousel-{{ section.id }}');
+  const track = document.getElementById('best-sellers-track-{{ section.id }}');
+  const thumb = document.getElementById('best-sellers-thumb-{{ section.id }}');
+  const mobileGrid = document.getElementById('best-sellers-mobile-grid-{{ section.id }}');
+  const showMoreBtn = document.getElementById('best-sellers-show-more-{{ section.id }}');
+
+  // ── Scrollbar ────────────────────────────────────────────────────────────────
+
+  function updateThumb() {
+    if (!carousel || !track || !thumb) return;
+    const ratio      = carousel.clientWidth / carousel.scrollWidth;
+    const thumbWidth = Math.max(ratio * track.clientWidth, 40);
+    const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+    const maxThumbLeft  = track.clientWidth - thumbWidth;
+    const pct = maxScrollLeft > 0 ? carousel.scrollLeft / maxScrollLeft : 0;
+    thumb.style.width = thumbWidth + 'px';
+    thumb.style.left  = (pct * maxThumbLeft).toFixed(1) + 'px';
+  }
+
+  carousel.addEventListener('scroll', updateThumb);
+  window.addEventListener('resize', updateThumb);
+  requestAnimationFrame(() => requestAnimationFrame(updateThumb));
+
+  // Change thumb height on hover
+
+  let isThumbDragging = false;
+
+  thumb.addEventListener('mouseenter', () => thumb.style.height = '6px');
+  thumb.addEventListener('mouseleave', () => { if (!isThumbDragging) thumb.style.height = ''; });
+
+  // Thumb scrollbar dragging
+
+  let thumbStartX, thumbStartLeft;
+
+  thumb.addEventListener('mousedown', e => {
+    isThumbDragging = true;
+    thumbStartX     = e.pageX;
+    thumbStartLeft  = thumb.offsetLeft;
+    thumb.style.height = '6px';
+    e.stopPropagation();
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isThumbDragging) return;
+    const dx           = e.pageX - thumbStartX;
+    const maxThumbLeft = track.clientWidth - thumb.offsetWidth;
+    const newLeft      = Math.min(Math.max(thumbStartLeft + dx, 0), maxThumbLeft);
+    const pct          = maxThumbLeft > 0 ? newLeft / maxThumbLeft : 0;
+    carousel.scrollLeft = pct * (carousel.scrollWidth - carousel.clientWidth);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isThumbDragging) {
+      isThumbDragging    = false;
+      thumb.style.height = '';
+    }
+  });
+
+  // Carousel click-drag
+
+  let isSliderDragging = false, startX, sl;
+
+  carousel.addEventListener('mousedown', e => {
+    isSliderDragging = true;
+    startX = e.pageX - carousel.offsetLeft;
+    sl     = carousel.scrollLeft;
+  });
+
+  carousel.addEventListener('mousemove', e => {
+    if (!isSliderDragging) return;
+    e.preventDefault();
+    carousel.scrollLeft = sl - (e.pageX - carousel.offsetLeft - startX) * 1.2;
+  });
+
+  document.addEventListener('mouseup', () => isSliderDragging = false);
+
+  // Mobile Show More button
+
+  if (showMoreBtn && mobileGrid) {
+    showMoreBtn.addEventListener('click', function () {
+      mobileGrid.querySelectorAll(':scope > div').forEach((c, i) => {
+        if (i >= 4) c.classList.remove('hidden');
+      });
+      this.remove();
+    });
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Best Sellers",
+  "tag": "section",
+  "class": "best-sellers-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section heading",
+      "default": "Best Sellers"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Maximum products to show",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "checkbox",
+      "id": "show_all_link",
+      "label": "Show 'Shop All' link on desktop",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_ratings",
+      "label": "Show star ratings",
+      "info": "Requires a third-party reviews app. Edit snippets/product-reviews-stars.liquid to integrate your app.",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Best Sellers"
+    }
+  ]
+}
+{% endschema %}

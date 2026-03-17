@@ -1,0 +1,42 @@
+{% comment %}
+  This is a sample placeholder for third-party star ratings content.
+  This file includes example rating and rating_count variables that relate to product metafields for testing.
+{% endcomment %}
+
+{%- liquid
+  assign rating = product.metafields.reviews.rating.value
+  assign rating_count = product.metafields.reviews.rating_count.value
+-%}
+
+{% if rating != blank %}
+  <div class="flex items-center gap-x-1 py-1">
+
+    <div class="flex items-center gap-x-0.5" aria-label="{{ rating.value }} {{ 'snippets.product_reviews_stars.stars' | t }}">
+      {% assign full_stars = rating.value | floor %}
+      {% assign has_half = false %}
+      {% assign remainder = rating.value | minus: full_stars %}
+      {% if remainder >= 0.5 %}
+        {% assign has_half = true %}
+      {% endif %}
+
+      {% for i in (1..5) %}
+        {%- liquid
+          assign star_type = 'empty'
+          if i <= full_stars
+            assign star_type = 'full'
+          elsif i == full_stars | plus: 1 and has_half
+            assign star_type = 'full'
+          endif
+        -%}
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" fill="{% if star_type == 'full' %}#231F20{% else %}#CFCFCF{% endif %}" xmlns="http://www.w3.org/2000/svg" class="md:w-3 md:h-3 w-[9px] h-[9px]">
+          <path d="M6 0L7.63 4.17L12 4.51L8.82 7.24L9.88 11.49L6 9.1L2.12 11.49L3.18 7.24L0 4.51L4.37 4.17L6 0Z"/>
+        </svg>
+      {% endfor %}
+    </div>
+
+    {% if rating_count != blank %}
+      <span class="font-poppins font-normal text-[11px] md:text-[12px] leading-none text-[#707070]">{{ rating_count }} {{ 'snippets.product_reviews_stars.reviews' | t }}</span>
+    {% endif %}
+
+  </div>
+{% endif %}
